@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: safex_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-safex_chatbot}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-safex_chatbot}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: safex_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    command: redis-server --save 60 1 --loglevel warning
+
+  n8n:
+    image: docker.n8n.io/n8nio/n8n
+    container_name: safex_n8n
+    environment:
+      - N8N_HOST=${N8N_HOST:-localhost}
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=${N8N_PROTOCOL:-http}
+      - NODE_ENV=production
+      - WEBHOOK_URL=${N8N_WEBHOOK_URL:-http://localhost:5678/}
+      - GENERIC_TIMEZONE=${TIMEZONE:-UTC}
+    ports:
+      - "5678:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./n8n-workflows:/data/n8n-workflows
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama
+    container_name: safex_ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    # We will need to pull the model after startup (e.g. `docker exec -it safex_ollama ollama pull phi3:mini`)
+
+volumes:
+  postgres_data:
+  redis_data:
+  n8n_data:
+  ollama_data:

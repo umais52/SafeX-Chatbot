@@ -1,0 +1,37 @@
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.mock-website {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #fff;
+}
+
+.mock-hero {
+  padding: 80px 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.mock-hero h1 {
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: #212529;
+}
+
+.mock-hero h1 span {
+  color: var(--color-primary);
+}
+
+.mock-hero p {
+  font-size: 1.1rem;
+  color: var(--color-text-light);
+  max-width: 600px;
+  margin-bottom: 30px;
+}

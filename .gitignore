@@ -1,0 +1,22 @@
+# Node
+node_modules/
+dist/
+build/
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# IDE / OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# DB
+chroma_db/

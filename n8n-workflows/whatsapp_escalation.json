@@ -1,0 +1,115 @@
+{
+  "name": "SafeX WhatsApp Escalation Flow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "escalation",
+        "options": {}
+      },
+      "id": "e43b1856-11f8-45d6-bd13-1f14371e51b3",
+      "name": "Webhook Trigger (From Backend)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ],
+      "webhookId": "escalation-trigger"
+    },
+    {
+      "parameters": {
+        "operation": "sendTemplate",
+        "phoneNumberId": "={{$json[\"phone_number_id\"]}}",
+        "recipientPhoneNumber": "={{$json[\"admin_phone\"]}}",
+        "template": "escalation_alert",
+        "components": []
+      },
+      "id": "5fa23d11-5364-4e9b-b236-057d34193b22",
+      "name": "WhatsApp (Send to Admin)",
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [
+        450,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "whatsapp-webhook",
+        "options": {}
+      },
+      "id": "5f643e99-4c55-46aa-ab3e-eb6b95d73351",
+      "name": "WhatsApp Trigger (From Admin)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        250,
+        500
+      ],
+      "webhookId": "whatsapp-trigger"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8000/api/v1/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-N8N-Signature",
+              "value": "={{$evaluateExpression(\"hmac-signature-here\")}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"escalation_id\": \"{{$json.body.entry[0].changes[0].value.messages[0].context.id}}\",\n  \"admin_response\": \"{{$json.body.entry[0].changes[0].value.messages[0].text.body}}\"\n}",
+        "options": {}
+      },
+      "id": "7649281a-6e54-47fa-8022-38448a97c413",
+      "name": "HTTP Request (Callback to Backend)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        450,
+        500
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook Trigger (From Backend)": {
+      "main": [
+        [
+          {
+            "node": "WhatsApp (Send to Admin)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WhatsApp Trigger (From Admin)": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request (Callback to Backend)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f7ab07b4-e35b-42c2-b91c-76e330a3b2b5",
+  "id": "c6z1",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}

@@ -1,0 +1,33 @@
+# API Framework
+fastapi
+uvicorn[standard]
+
+# Database
+sqlalchemy
+asyncpg
+pgvector
+alembic
+
+# Redis (Caching and Rate Limiting)
+redis
+
+# LLM & RAG
+langchain
+langchain-core
+langchain-postgres
+sentence-transformers
+ollama
+
+# Security & PII
+presidio-analyzer
+presidio-anonymizer
+spacy
+
+# Utilities
+python-dotenv
+pydantic
+pydantic-settings
+requests
+scikit-learn
+numpy
+pandas
