@@ -4,9 +4,10 @@ import './Header.css';
 
 interface HeaderProps {
   onNavigateHome: () => void;
+  currentView?: 'home' | 'faq';
 }
 
-export const Header: React.FC<HeaderProps> = ({ onNavigateHome }) => {
+export const Header: React.FC<HeaderProps> = ({ onNavigateHome, currentView = 'home' }) => {
   return (
     <header className="safex-header-container">
       <div className="top-bar">
@@ -21,8 +22,8 @@ export const Header: React.FC<HeaderProps> = ({ onNavigateHome }) => {
           </div>
           
           <ul className="nav-links">
-            <li onClick={onNavigateHome}>Home</li>
-            <li className="active">About</li>
+            <li className={currentView === 'home' ? 'active' : ''} onClick={onNavigateHome} style={{cursor: 'pointer'}}>Home</li>
+            <li className={currentView === 'faq' ? 'active' : ''}>About</li>
             <li>Services ▾</li>
             <li>Contact</li>
             <li>Trust</li>

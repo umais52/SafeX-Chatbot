@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Header } from './Header';
 import { ChatInterface } from './ChatInterface';
 import { HelpCircle, Shield, Globe, Clock } from 'lucide-react';
@@ -6,9 +6,14 @@ import './FAQScreen.css';
 
 interface FAQScreenProps {
   onNavigateHome: () => void;
+  currentView?: 'home' | 'faq';
 }
 
-export const FAQScreen: React.FC<FAQScreenProps> = ({ onNavigateHome }) => {
+export const FAQScreen: React.FC<FAQScreenProps> = ({ onNavigateHome, currentView }) => {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const faqs = [
     {
       icon: <Globe size={20} />,
@@ -34,7 +39,7 @@ export const FAQScreen: React.FC<FAQScreenProps> = ({ onNavigateHome }) => {
 
   return (
     <div className="faq-screen">
-      <Header onNavigateHome={onNavigateHome} />
+      <Header onNavigateHome={onNavigateHome} currentView={currentView} />
       
       <main className="faq-main-content">
         <div className="faq-container">
@@ -68,6 +73,16 @@ export const FAQScreen: React.FC<FAQScreenProps> = ({ onNavigateHome }) => {
               <ChatInterface className="full-height-chat" hideQuickReplies={true} />
             </div>
           </div>
+        </div>
+        
+        <div className="about-safex-section">
+          <h1>About <span>SafeX</span> Solutions</h1>
+          <p>
+            <strong>SafeX Solutions</strong> is a global, full service technology and digital solutions company delivering innovative IT services, cybersecurity, marketing, and creative media solutions to businesses across more than 15 countries worldwide.
+          </p>
+          <p>
+            At SafeX Solutions, we specialize in web development, network infrastructure, cloud solutions, and cybersecurity services designed to keep your business connected, protected, and future-ready.
+          </p>
         </div>
       </main>
     </div>
