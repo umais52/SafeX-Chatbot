@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, User, Bot, Loader2 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import './ChatInterface.css';
 
 export interface Message {
@@ -21,6 +22,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className = '', hi
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const sessionIdRef = useRef<string>(Math.random().toString(36).substring(2, 15));
 
   const faqs = [
     'Which countries do you operate in?',
@@ -66,7 +68,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className = '', hi
         },
         body: JSON.stringify({
           query: text,
-          user_id: 'local-test-user'
+          user_id: 'local-test-user',
+          session_id: sessionIdRef.current
         }),
         signal: controller.signal
       });
@@ -119,7 +122,9 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className = '', hi
               {msg.isBot ? <Bot size={18} /> : <User size={18} />}
             </div>
             <div className="chat-bubble">
-              {msg.text || (isLoading && msg.isBot ? (
+              {msg.text ? (
+                <ReactMarkdown>{msg.text}</ReactMarkdown>
+              ) : (isLoading && msg.isBot ? (
                 <span className="typing-indicator">
                   <span className="dot"></span>
                   <span className="dot"></span>
@@ -160,4 +165,3 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className = '', hi
     </div>
   );
 };
-
