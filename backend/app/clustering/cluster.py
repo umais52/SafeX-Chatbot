@@ -1,61 +1,46 @@
-import pandas as pd
 import numpy as np
+import math
 from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_score
-from app.rag.embeddings import embeddings_client
+from app.rag.chain import embeddings
+from typing import List
 
 class QueryClusterer:
-    def determine_optimal_k(self, embeddings: np.ndarray, max_k: int = 10) -> int:
+    def get_largest_cluster(self, queries: List[str]) -> List[str]:
         """
-        Determines the optimal number of clusters using the Silhouette Score.
+        Clusters a list of query strings and returns the queries in the largest cluster.
         """
-        if len(embeddings) < 3:
-            return 1 # Not enough data for meaningful clustering
-            
-        best_k = 2
-        best_score = -1
+        n = len(queries)
+        if n == 0:
+            return []
         
-        # Max K cannot exceed number of samples - 1
-        max_possible_k = min(max_k, len(embeddings) - 1)
-        
-        for k in range(2, max_possible_k + 1):
-            kmeans = KMeans(n_clusters=k, random_state=42, n_init="auto")
-            cluster_labels = kmeans.fit_predict(embeddings)
-            score = silhouette_score(embeddings, cluster_labels)
-            
-            if score > best_score:
-                best_score = score
-                best_k = k
-                
-        return best_k
-
-    def cluster_queries(self, df: pd.DataFrame) -> dict:
-        """
-        Clusters the queries and returns groups.
-        """
-        if df.empty:
-            return {}
-            
         # 1. Vectorize queries
-        queries = df['query'].tolist()
-        embeddings_list = embeddings_client.embed_documents(queries)
+        embeddings_list = embeddings.embed_documents(queries)
         embeddings_np = np.array(embeddings_list)
         
-        # 2. Determine K
-        k = self.determine_optimal_k(embeddings_np)
+        # 2. Determine K = floor(sqrt(n))
+        k = max(1, math.floor(math.sqrt(n)))
+        if n < 3:
+            k = 1
         
         # 3. Cluster
         kmeans = KMeans(n_clusters=k, random_state=42, n_init="auto")
-        df['cluster'] = kmeans.fit_predict(embeddings_np)
+        labels = kmeans.fit_predict(embeddings_np)
         
         # Group by cluster
         clusters = {}
-        for cluster_id, group in df.groupby('cluster'):
-            clusters[int(cluster_id)] = {
-                "size": len(group),
-                "queries": group['query'].tolist()
-            }
+        for i, label in enumerate(labels):
+            if label not in clusters:
+                clusters[label] = []
+            clusters[label].append(queries[i])
             
-        return clusters
+        # 4. Find largest cluster
+        largest_cluster = []
+        max_size = -1
+        for cluster_id, cluster_queries in clusters.items():
+            if len(cluster_queries) > max_size:
+                max_size = len(cluster_queries)
+                largest_cluster = cluster_queries
+                
+        return largest_cluster
 
 clusterer = QueryClusterer()

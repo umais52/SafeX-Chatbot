@@ -12,7 +12,7 @@ qa_prompt = ChatPromptTemplate.from_messages([
      "1. If the user says 'hi' or greets you, respond politely.\n"
      "2. If the user makes a conversational follow-up or formatting request (e.g., 'ok', 'thanks', 'list in bullet points', 'bold it'), fulfill it using the Chat History.\n"
      "3. For factual questions about SafeX, use ONLY the Context below.\n"
-     "4. If a factual question cannot be answered using the Context or Chat History, you MUST reply EXACTLY with: 'I have forwarded this to our human expert.'\n"
+     "4. If a factual question cannot be answered using the Context or Chat History, you MUST reply EXACTLY with: 'The answer to this question is not available in the context provided by SafeX. If you would like me to send your request to an admin, please provide your email address (e.g., xyz@example.com).'\n"
      "5. Keep your answers professional.\n\n"
      "Context:\n{context}\n\n"
      "Chat History:\n{chat_history}"),
@@ -25,9 +25,12 @@ vectorstore = Chroma(persist_directory="./chroma_db", embedding_function=embeddi
 retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
 
 from app.config import settings
+from langchain_ollama import ChatOllama
 
-# 3. LLM
-llm = ChatGoogleGenerativeAI(model=settings.LLM_MODEL, google_api_key=settings.GOOGLE_API_KEY)
+# 3. LLM Configuration with Fallback
+gemini_llm = ChatGoogleGenerativeAI(model=settings.GEMINI_MODEL, google_api_key=settings.GOOGLE_API_KEY)
+ollama_llm = ChatOllama(model=settings.OLLAMA_FALLBACK_MODEL, base_url=settings.OLLAMA_BASE_URL)
+llm = gemini_llm.with_fallbacks([ollama_llm])
 
 # 4. Global Memory Map
 # This maps session_id to its own ConversationBufferWindowMemory instance.

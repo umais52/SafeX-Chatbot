@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Header } from './Header';
 import { ChatInterface } from './ChatInterface';
-import { HelpCircle, Shield, Globe, Clock } from 'lucide-react';
+import { HelpCircle, Shield, Globe, Clock, Sparkles } from 'lucide-react';
 import './FAQScreen.css';
 
 interface FAQScreenProps {
@@ -10,11 +10,27 @@ interface FAQScreenProps {
 }
 
 export const FAQScreen: React.FC<FAQScreenProps> = ({ onNavigateHome, currentView }) => {
+  const [dynamicFaqs, setDynamicFaqs] = useState<any[]>([]);
+
   useEffect(() => {
     window.scrollTo(0, 0);
+    
+    // Fetch dynamic FAQs
+    const fetchFaqs = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/api/v1/faq/');
+        if (response.ok) {
+          const data = await response.json();
+          setDynamicFaqs(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch FAQs:', error);
+      }
+    };
+    fetchFaqs();
   }, []);
 
-  const faqs = [
+  const hardcodedFaqs = [
     {
       icon: <Globe size={20} />,
       question: 'Which countries do you operate in?',
@@ -50,13 +66,24 @@ export const FAQScreen: React.FC<FAQScreenProps> = ({ onNavigateHome, currentVie
             </div>
             
             <div className="faq-list">
-              {faqs.map((faq, idx) => (
-                <div key={idx} className="faq-item">
+              {hardcodedFaqs.map((faq, idx) => (
+                <div key={`hardcoded-${idx}`} className="faq-item">
                   <div className="faq-icon-wrapper">
                     {faq.icon}
                   </div>
                   <div className="faq-text">
                     <h4>{faq.question}</h4>
+                    <p>{faq.answer}</p>
+                  </div>
+                </div>
+              ))}
+              {dynamicFaqs.map((faq, idx) => (
+                <div key={`dynamic-${idx}`} className="faq-item">
+                  <div className="faq-icon-wrapper" style={{color: '#8b5cf6'}}>
+                    <Sparkles size={20} />
+                  </div>
+                  <div className="faq-text">
+                    <h4>{faq.question} <span style={{fontSize: '0.7rem', backgroundColor: '#f3e8ff', color: '#7e22ce', padding: '2px 6px', borderRadius: '10px', marginLeft: '6px', verticalAlign: 'middle'}}>AI Generated</span></h4>
                     <p>{faq.answer}</p>
                   </div>
                 </div>

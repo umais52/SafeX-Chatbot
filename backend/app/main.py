@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.api import chat
+from app.api import escalation
+from app.api import faq
 from app.db.session import engine
 from app.db.models import Base
 
@@ -24,7 +26,7 @@ async def init_db():
             async with httpx.AsyncClient() as client:
                 r = await client.post(
                     f"{settings.OLLAMA_BASE_URL}/api/generate",
-                    json={"model": settings.LLM_MODEL, "prompt": "hi", "stream": False, "options": {"num_predict": 1}},
+                    json={"model": settings.OLLAMA_FALLBACK_MODEL, "prompt": "hi", "stream": False, "options": {"num_predict": 1}},
                     timeout=300.0
                 )
                 if r.status_code == 200:
@@ -52,3 +54,5 @@ def root():
 
 # We will include routers here later
 app.include_router(chat.router, prefix=f"{settings.API_V1_STR}/chat", tags=["chat"])
+app.include_router(escalation.router, prefix=f"{settings.API_V1_STR}/escalation", tags=["escalation"])
+app.include_router(faq.router, prefix=f"{settings.API_V1_STR}/faq", tags=["faq"])

@@ -11,28 +11,21 @@
       "name": "Webhook Trigger (From Backend)",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
-      "position": [
-        250,
-        300
-      ],
+      "position": [250, 300],
       "webhookId": "escalation-trigger"
     },
     {
       "parameters": {
-        "operation": "sendTemplate",
+        "operation": "sendMessage",
         "phoneNumberId": "={{$json[\"phone_number_id\"]}}",
         "recipientPhoneNumber": "={{$json[\"admin_phone\"]}}",
-        "template": "escalation_alert",
-        "components": []
+        "textBody": "=🚨 *New Escalation Request*\n\n*Escalation ID:* {{$json[\"escalation_id\"]}}\n*User Email:* {{$json[\"user_email\"]}}\n*Question:* {{$json[\"original_question\"]}}\n\n_Reply to this message with the answer._"
       },
       "id": "5fa23d11-5364-4e9b-b236-057d34193b22",
       "name": "WhatsApp (Send to Admin)",
       "type": "n8n-nodes-base.whatsApp",
       "typeVersion": 1,
-      "position": [
-        450,
-        300
-      ]
+      "position": [450, 300]
     },
     {
       "parameters": {
@@ -41,41 +34,40 @@
         "options": {}
       },
       "id": "5f643e99-4c55-46aa-ab3e-eb6b95d73351",
-      "name": "WhatsApp Trigger (From Admin)",
+      "name": "WhatsApp Trigger (Admin Reply)",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
-      "position": [
-        250,
-        500
-      ],
+      "position": [250, 550],
       "webhookId": "whatsapp-trigger"
     },
     {
       "parameters": {
+        "operation": "sendMessage",
+        "phoneNumberId": "={{$json[\"phone_number_id\"]}}",
+        "recipientPhoneNumber": "={{$json[\"body\"][\"entry\"][0][\"changes\"][0][\"value\"][\"messages\"][0][\"context\"][\"user_email\"]}}",
+        "textBody": "=Hello! Here is the answer to your question from SafeX admin:\n\n{{$json[\"body\"][\"entry\"][0][\"changes\"][0][\"value\"][\"messages\"][0][\"text\"][\"body\"]}}"
+      },
+      "id": "a1b2c3d4-send-email-node",
+      "name": "Send Email to User (via n8n Email node)",
+      "type": "n8n-nodes-base.emailSendV2",
+      "typeVersion": 1,
+      "position": [450, 550],
+      "notes": "REPLACE THIS NODE: Use the n8n 'Send Email' node configured with your SMTP credentials. Set To={{user_email}}, Subject='SafeX - Answer to your question', Body={{admin_response}}"
+    },
+    {
+      "parameters": {
         "method": "POST",
-        "url": "http://host.docker.internal:8000/api/v1/n8n",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "X-N8N-Signature",
-              "value": "={{$evaluateExpression(\"hmac-signature-here\")}}"
-            }
-          ]
-        },
+        "url": "http://host.docker.internal:8000/api/v1/escalation/resolve",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"escalation_id\": \"{{$json.body.entry[0].changes[0].value.messages[0].context.id}}\",\n  \"admin_response\": \"{{$json.body.entry[0].changes[0].value.messages[0].text.body}}\"\n}",
+        "jsonBody": "={\n  \"escalation_id\": \"{{$json[\"escalation_id\"]}}\",\n  \"admin_response\": \"{{$json[\"admin_response\"]}}\",\n  \"user_email\": \"{{$json[\"user_email\"]}}\",\n  \"original_question\": \"{{$json[\"original_question\"]}}\"\n}",
         "options": {}
       },
       "id": "7649281a-6e54-47fa-8022-38448a97c413",
-      "name": "HTTP Request (Callback to Backend)",
+      "name": "HTTP Request (Update FAQ Doc)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [
-        450,
-        500
-      ]
+      "position": [650, 550]
     }
   ],
   "pinData": {},
@@ -91,11 +83,22 @@
         ]
       ]
     },
-    "WhatsApp Trigger (From Admin)": {
+    "WhatsApp Trigger (Admin Reply)": {
       "main": [
         [
           {
-            "node": "HTTP Request (Callback to Backend)",
+            "node": "Send Email to User (via n8n Email node)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email to User (via n8n Email node)": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request (Update FAQ Doc)",
             "type": "main",
             "index": 0
           }
@@ -107,9 +110,9 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "f7ab07b4-e35b-42c2-b91c-76e330a3b2b5",
+  "versionId": "f7ab07b4-e35b-42c2-b91c-76e330a3b2b6",
   "id": "c6z1",
   "meta": {
-    "templateCredsSetupCompleted": true
+    "templateCredsSetupCompleted": false
   }
 }

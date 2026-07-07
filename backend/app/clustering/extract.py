@@ -1,28 +1,17 @@
-import pandas as pd
-from typing import List, Dict
+from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from app.db.models import Escalation
+from app.db.models import BotAnsweredQuestion
 
 class DataExtractor:
-    async def extract_resolved_escalations(self, db: AsyncSession, tenant_id: str) -> pd.DataFrame:
+    async def extract_unclustered_questions(self, db: AsyncSession, tenant_id: str) -> List[BotAnsweredQuestion]:
         """
-        Extracts all resolved escalations for a tenant to be used for clustering.
+        Extracts all un-clustered bot-answered questions for a tenant.
         """
         result = await db.execute(
-            select(Escalation)
-            .where(Escalation.tenant_id == tenant_id, Escalation.status == "resolved")
+            select(BotAnsweredQuestion)
+            .where(BotAnsweredQuestion.tenant_id == tenant_id, BotAnsweredQuestion.is_clustered == False)
         )
-        escalations = result.scalars().all()
-        
-        data = []
-        for esc in escalations:
-            data.append({
-                "id": esc.id,
-                "query": esc.query,
-                "context": esc.context
-            })
-            
-        return pd.DataFrame(data)
+        return list(result.scalars().all())
 
 extractor = DataExtractor()

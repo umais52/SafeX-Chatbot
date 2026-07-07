@@ -19,10 +19,14 @@ class Settings(BaseSettings):
 
     # LLM & RAG
     OLLAMA_BASE_URL: str = "http://localhost:11434"
-    LLM_MODEL: str = "gemini-2.5-flash"
+    GEMINI_MODEL: str = "gemini-2.5-flash"
+    OLLAMA_FALLBACK_MODEL: str = "tinyllama"
     EMBEDDING_MODEL: str = "all-MiniLM-L6-v2"
     CROSS_ENCODER_MODEL: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
     GOOGLE_API_KEY: str = ""
+
+    # Clustering
+    CLUSTERING_QUESTION_THRESHOLD: int = 10  # Min un-clustered questions before auto-clustering runs
 
     # Secrets
     SECRET_KEY: str = "CHANGE_THIS"
@@ -31,7 +35,8 @@ class Settings(BaseSettings):
     WHATSAPP_VERIFY_TOKEN: str = "CHANGE_THIS"
 
     # n8n
-    N8N_WEBHOOK_URL: str = "http://localhost:5678/webhook/"
+    N8N_WEBHOOK_URL: str = "http://localhost:5678/webhook/escalation"
+    ADMIN_WHATSAPP_NUMBER: str = ""
 
     class Config:
         env_file = ".env"

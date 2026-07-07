@@ -20,7 +20,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className = '', hi
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const sessionIdRef = useRef<string>(Math.random().toString(36).substring(2, 15));
 
@@ -32,7 +32,9 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className = '', hi
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
   }, [messages]);
 
   const handleSend = async (textToSend?: string) => {
@@ -115,7 +117,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className = '', hi
 
   return (
     <div className={`chat-interface ${className}`}>
-      <div className="chat-messages">
+      <div className="chat-messages" ref={messagesContainerRef}>
         {messages.map((msg) => (
           <div key={msg.id} className={`chat-message-wrapper ${msg.isBot ? 'bot' : 'user'}`}>
             <div className="chat-avatar">
@@ -134,7 +136,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ className = '', hi
             </div>
           </div>
         ))}
-        <div ref={messagesEndRef} />
+
         {!hideQuickReplies && messages.length === 1 && (
           <div className="faq-quick-replies">
             {faqs.map((faq, idx) => (
